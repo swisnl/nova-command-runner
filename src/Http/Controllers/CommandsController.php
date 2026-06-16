@@ -160,8 +160,13 @@ class CommandsController
 
         return collect($history)
             ->filter(function ($entry) use ($groupPatterns, $commandPatterns) {
-                $condition = ($groupPatterns !== false && in_array_wildcard($entry['group'], $groupPatterns))
-                    || ($commandPatterns !== false && in_array_wildcard($entry['run'], $commandPatterns));
+                $matchesGroup = $groupPatterns !== false
+                    && collect($groupPatterns)->contains(fn ($pattern) => Str::is($pattern, $entry['group']));
+
+                $matchesCommand = $commandPatterns !== false
+                    && collect($commandPatterns)->contains(fn ($pattern) => Str::is($pattern, $entry['run']));
+
+                $condition = $matchesGroup || $matchesCommand;
 
                 return Arr::get($entry, 'status') === 'pending' && $condition;
             })
